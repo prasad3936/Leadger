@@ -17,12 +17,14 @@ class Customer(db.Model):
     amount = db.Column(db.Float, nullable=False)
     products = db.Column(db.String(255), nullable=False)
 
-# Home route to display all customers
+# Home route to display customers with pagination
 @app.route('/')
-def index():
-    customers = Customer.query.all()
+@app.route('/page/<int:page>')
+def index(page=1):
+    per_page = 10
+    pagination = Customer.query.paginate(page=page, per_page=per_page)
     total_amount = db.session.query(db.func.sum(Customer.amount)).scalar() or 0
-    return render_template('index.html', customers=customers, total_amount=total_amount)
+    return render_template('index.html', pagination=pagination, total_amount=total_amount)
 
 # Route to add a new customer
 @app.route('/add', methods=['GET', 'POST'])
@@ -64,6 +66,13 @@ def delete_customer(id):
     db.session.commit()
 
     return redirect(url_for('index'))
+
+# Route for printing the customer list
+@app.route('/print')
+def print_customers():
+    customers = Customer.query.all()
+    total_amount = db.session.query(db.func.sum(Customer.amount)).scalar() or 0
+    return render_template('print_customers.html', customers=customers, total_amount=total_amount)
 
 if __name__ == '__main__':
     app.run(debug=True)
