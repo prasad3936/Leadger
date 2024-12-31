@@ -13,20 +13,22 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Model for Customer Data
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id', ondelete='CASCADE'), nullable=False)
+    type = db.Column(db.String(10), nullable=False)  # 'credit' or 'debit'
+    amount = db.Column(db.Float, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Update the relationship in the Customer model
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     mobile = db.Column(db.String(15), nullable=False)
     amount = db.Column(db.Float, default=0.0)
     products = db.Column(db.String(255), nullable=False)
+    transactions = db.relationship('Transaction', cascade="all, delete-orphan", backref='customer')
 
-class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
-    type = db.Column(db.String(10), nullable=False)  # 'credit' or 'debit'
-    amount = db.Column(db.Float, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Home route to display all customers
 @app.route('/')
